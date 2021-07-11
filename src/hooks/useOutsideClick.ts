@@ -9,14 +9,14 @@ import { useEffect, useRef, useCallback } from 'react';
  * @param handler Callback to fire on outside click
  * @param when A boolean which which activates the hook only when it is true. Useful for conditionally enable the outside click
  */
-function useOutsideClick(
-  ref: MutableRefObject<HTMLElement>,
+function useOutsideClick<T extends HTMLElement = HTMLElement>(
+  ref: MutableRefObject<T | null>, // initially html element refs will be null
   handler: (e: MouseEvent) => any,
   when: boolean = true
 ): void {
   const savedHandler = useRef(handler);
 
-  const memoizedCallback = useCallback((e: MouseEvent) => {
+  const memoizedCallback = useCallback((e: MouseEvent | TouchEvent) => {
     if (ref && ref.current && !ref.current.contains(e.target as Element)) {
       savedHandler.current(e);
     }
@@ -29,11 +29,11 @@ function useOutsideClick(
   useEffect(() => {
     if (when) {
       document.addEventListener('click', memoizedCallback);
-      document.addEventListener('ontouchstart', memoizedCallback);
+      document.addEventListener('touchstart', memoizedCallback);
 
       return () => {
         document.removeEventListener('click', memoizedCallback);
-        document.removeEventListener('ontouchstart', memoizedCallback);
+        document.removeEventListener('touchstart', memoizedCallback);
       };
     }
   }, [ref, handler, when]);
